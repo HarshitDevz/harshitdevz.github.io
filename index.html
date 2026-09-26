@@ -612,6 +612,11 @@
             if (window.initThree3D) window.initThree3D();
             if (window.resizeThree3D) window.resizeThree3D();
           }, 50);
+        } else if (tabId === "terminal") {
+          setTimeout(function() {
+            var ti = document.getElementById("termInput");
+            if (ti) ti.focus();
+          }, 80);
         }
         playTone(620, 0.04, "sine");
         try {
@@ -1517,11 +1522,14 @@ Type 'help' for available commands or 'whoami' for bio.
       var histIdx = -1;
 
       var commands = {
-        help: "Available commands:\n  • whoami    : Harshit's background & education\n  • wearbuy   : Details on WearBuy (hyperlocal 60-min fashion & 1-hr return)\n  • skills    : Primary tech stack and tools\n  • projects  : Major software platforms built\n  • 3d        : Switch to 3D Activity Landscape\n  • snake     : Switch to Snake Arcade\n  • contact   : Email and socials\n  • clear     : Clear screen\n  • sudo      : Execute with admin privileges",
+        help: "Available commands:\n  • whoami    : Harshit's background & education\n  • wearbuy   : Details on WearBuy (hyperlocal 60-min fashion & 1-hr return)\n  • jarvis    : Autonomous Python AI Voice Assistant details\n  • skills    : Primary tech stack and tools\n  • projects  : Major software platforms built\n  • portfolio : Open flagship portfolio (h-devz.vercel.app)\n  • 3d        : Switch to 3D Activity Landscape\n  • snake     : Switch to Snake Arcade\n  • ls        : List files and modules in current environment\n  • contact   : Email and socials\n  • clear     : Clear screen\n  • sudo      : Execute with admin privileges",
         whoami: "👨‍💻 Harshit — Full-Stack Developer & AI Systems Builder\n  Education: BCA (Artificial Intelligence & Machine Learning) @ Chitkara University, Punjab\n  Focus    : Hyperlocal quick-commerce, AI voice agents, reactive web interfaces",
         wearbuy: "🛍️ WEARBUY // HYPERLOCAL FASHION QUICK-COMMERCE\n  • Connects verified offline stores with shoppers in Punjab\n  • 30-60 minute doorstep delivery with try-at-home\n  • 1-Hour return window & instant doorstep exchanges\n  • Tech: React, TanStack, Cloudflare Workers, Tailwind",
+        jarvis: "🤖 JARVIS // PYTHON AI VOICE ASSISTANT\n  • Autonomous voice automation kernel\n  • Sub-second latency command execution pipeline\n  • SpeechRecognition & natural language parser",
         skills: "🛠️ ARSENAL:\n  Languages: TypeScript, Python, JavaScript\n  Frontend : React 19, Next.js 15, Tailwind CSS, Three.js\n  Backend  : Node.js, Express, MongoDB, Cloudflare Workers\n  AI Core  : SpeechRecognition, Natural Language Processing, Autonomous Agents",
         projects: "🚀 FEATURED WORKS:\n  [1] WearBuy (Hyperlocal fashion delivery with 1-hr return window)\n  [2] JARVIS (Autonomous Python AI Voice Assistant)\n  [3] DevzIndia (Developer community platform)\n  [4] Pandittan Di Hatti (Digital sweet shop storefront)",
+        portfolio: function() { window.open("https://h-devz.vercel.app/", "_blank"); return "Opening live portfolio (h-devz.vercel.app)..."; },
+        ls: "projects/   ai-systems/   arcade/   wearbuy.json   jarvis.py   README.md",
         contact: "📬 CONNECT:\n  Email    : harshhit.uiu@gmail.com\n  LinkedIn : https://www.linkedin.com/in/harshitdevz/\n  Portfolio: https://h-devz.vercel.app/",
         sudo: "Permission denied: Harshit's code is protected by root permissions 😉",
         "3d": function() { switchTab("3d"); return "Switched to 3D Activity Landscape."; },
