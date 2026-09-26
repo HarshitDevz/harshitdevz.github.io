@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harshit // 3D Cyber Matrix & Interactive Mission Control Suite</title>
+  <style>
+    :root {
+      --bg: #05070d;
+      --card-bg: #090d16;
+      --card-border: #1a2234;
+      --mint: #00F5A0;
+      --cyan: #00D9F5;
+      --indigo: #6366F1;
+      --purple: #A855F7;
+      --pink: #EC4899;
+      --amber: #F59E0B;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 14px;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 245, 160, 0.09) 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.09) 0%, transparent 60%),
+        radial-gradient(circle at 0% 80%, rgba(0, 217, 245, 0.06) 0%, transparent 50%);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      max-width: 900px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 14px;
+      background: rgba(0, 245, 160, 0.12);
+      border: 1px solid var(--mint);
+      color: var(--mint);
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      box-shadow: 0 0 20px rgba(0, 245, 160, 0.2);
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--mint), var(--cyan), #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: #080c14;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 6px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: inherit;
+    }
+
+    .tab-btn:hover { 
+      color: #fff; 
+      background: rgba(255,255,255,0.05); 
+    }
+
+    .tab-btn.active {
+      background: rgba(0, 245, 160, 0.16);
+      color: var(--mint);
+      border-color: rgba(0, 245, 160, 0.5);
+      box-shadow: 0 0 20px rgba(0, 245, 160, 0.25);
+    }
+
+    .tab-panel {
+      display: none;
+      width: 100%;
+      max-width: 1060px;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+    .tab-panel.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Container Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 20px 48px rgba(0,0,0,0.7);
+      position: relative;
+    }
+
+    /* --- 3D MATRIX STYLES --- */
+    .matrix-3d-wrap {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #1f2b42;
+      background: #020409;
+      box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
+    }
+
+    .matrix-3d-wrap.fullscreen-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      border-radius: 0;
+    }
+
+    #threeCanvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+      cursor: grab;
+    }
+    #threeCanvas:active { cursor: grabbing; }
+
+    .matrix-hud-top {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      z-index: 10;
+      pointer-events: none;
+      flex-wrap: wrap;
+    }
+    .matrix-hud-top > * { pointer-events: auto; }
+
+    .matrix-tag {
+      background: rgba(7, 11, 20, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 245, 160, 0.4);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--mint);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+
+    .matrix-btn-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .m-btn {
+      background: rgba(13, 18, 31, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid #232f48;
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .m-btn:hover {
+      background: rgba(0, 245, 160, 0.15);
+      border-color: var(--mint);
+      color: #fff;
+    }
+    .m-btn.active {
+      background: rgba(0, 245, 160, 0.25);
+      border-color: var(--mint);
+      color: var(--mint);
+      box-shadow: 0 0 12px rgba(0, 245, 160, 0.3);
+    }
+
+    /* Floating Raycaster Tooltip HUD */
+    .pillar-tooltip {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(5, 9, 18, 0.92);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(0, 217, 245, 0.5);
+      border-radius: 12px;
+      padding: 14px 18px;
+      z-index: 10;
+      pointer-events: none;
+      font-family: var(--font-mono);
+      min-width: 250px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.8), 0 0 20px rgba(0, 217, 245, 0.2);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .tooltip-header {
+      font-size: 11px;
+      color: var(--cyan);
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+    }
+    .tooltip-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .tooltip-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Controls Bar Below 3D Canvas */
+    .matrix-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: #090e1a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+    }
+    .slider-wrap input[type="range"] {
+      accent-color: var(--mint);
+      cursor: pointer;
+    }
+
+    /* --- SNAKE GAME --- */
+    .game-hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .hud-stat {
+      background: #070a11;
+      border: 1px solid var(--card-border);
+      padding: 8px 16px;
+      border-radius: 10px;
+    }
+    .hud-stat span { color: var(--mint); font-weight: bold; }
+
+    #snakeCanvas {
+      width: 100%;
+      max-width: 720px;
+      height: 380px;
+      background: #04060c;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      display: block;
+      margin: 0 auto 16px auto;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+    }
+
+    .btn {
+      background: #111726;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover {
+      background: #1a233a;
+      border-color: var(--mint);
+      color: var(--mint);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--mint), var(--cyan));
+      border: none;
+      color: #05070d;
+      font-weight: 900;
+    }
+    .btn-primary:hover {
+      opacity: 0.92;
+      box-shadow: 0 0 20px rgba(0, 245, 160, 0.4);
+      color: #05070d;
+    }
+
+    .d-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 44px);
+      gap: 6px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .d-pad button {
+      background: #101625;
+      border: 1px solid var(--card-border);
+      color: var(--mint);
+      font-size: 16px;
+      height: 44px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .d-pad button:hover { background: #1a2238; }
+
+    /* --- PORTFOLIO & TERMINAL --- */
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media(min-width: 768px) {
+      .portfolio-grid { grid-template-columns: 3fr 2fr; }
+    }
+    .preview-card {
+      background: #070a12;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .metric-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(0, 245, 160, 0.1);
+      border: 1px solid rgba(0, 245, 160, 0.3);
+      color: var(--mint);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    .terminal-body {
+      background: #04060d;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+    }
+    .term-output {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 360px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+    .term-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 10px;
+    }
+    .term-prompt { color: var(--mint); font-weight: bold; }
+    .term-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+    }
+
+    footer {
+      margin-top: 36px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    footer a { color: var(--cyan); text-decoration: none; font-weight: 600; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+
+  <!-- THREE.JS & ORBIT CONTROLS VIA CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- ALL SCRIPTS DECLARED IN HEAD SO FUNCTIONS EXIST BEFORE ANY BUTTON ONCLICK FIRES -->
+  <script>
+    // Web Audio Synthesizer
+    var soundEnabled = true;
+    var audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        try {
+          var AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtxClass) audioCtx = new AudioCtxClass();
+        } catch(e){}
+      }
+      return audioCtx;
+    }
+
+    function beep(freq, duration, type) {
+      if (!soundEnabled) return;
+      try {
+        var ctx = getAudioContext();
+        if (!ctx) return;
+        if (ctx.state === 'suspended') ctx.resume();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = type || "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.04, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch(e){}
+    }
+
+    function toggleMute() {
+      soundEnabled = !soundEnabled;
+      var el = document.getElementById("audioStatus");
+      if (el) el.textContent = soundEnabled ? "SYNTH ON" : "MUTED";
+    }
+
+    // Tab Switcher
+    function switchTab(tabId) {
+      var btns = document.querySelectorAll('.tab-btn');
+      for (var i = 0; i < btns.length; i++) {
+        if (btns[i].getAttribute('data-tab') === tabId) {
+          btns[i].classList.add('active');
+        } else {
+          btns[i].classList.remove('active');
+        }
+      }
+
+      var panels = document.querySelectorAll('.tab-panel');
+      for (var j = 0; j < panels.length; j++) {
+        panels[j].classList.remove('active');
+      }
+
+      var targetPanel = document.getElementById('tab-' + tabId);
+      if (targetPanel) {
+        targetPanel.classList.add('active');
+        if (tabId === '3d') {
+          setTimeout(function() {
+            if (window.initThree3D) window.initThree3D();
+            if (window.resizeThree3D) window.resizeThree3D();
+          }, 60);
+        }
+        beep(700, 0.05);
+        try {
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, "", "#" + tabId);
+          }
+        } catch(e){}
+      }
+    }
+
+    // ==========================================
+    // 🌐 EPIC THREE.JS 3D NEURAL MATRIX ENGINE
+    // ==========================================
+    var scene, camera, renderer, controls;
+    var pillars = [];
+    var raycaster, mouse;
+    var hoveredMesh = null;
+    var energyBeam = null;
+    var starParticles = null;
+    var light1, light2;
+    var clock = new THREE.Clock();
+    var isThreeRunning = false;
+    var isAutoRotate = true;
+    var waveActive = true;
+    var heightScale = 1.0;
+    var currentTheme = "mint";
+    var shockwaveRadius = -1;
+
+    var matrixCols = 46;
+    var matrixRows = 12;
+
+    var colorPalettes = {
+      mint: {
+        bg: 0x03060c,
+        high: 0x00F5A0,
+        mid: 0x00D9F5,
+        low: 0x1e3a5f,
+        base: 0x0e1726,
+        light1: 0x00F5A0,
+        light2: 0x00D9F5,
+      },
+      synthwave: {
+        bg: 0x08020f,
+        high: 0xFF007F,
+        mid: 0xA855F7,
+        low: 0x4C1D95,
+        base: 0x1E1B4B,
+        light1: 0xFF007F,
+        light2: 0x06B6D4,
+      },
+      matrix: {
+        bg: 0x010803,
+        high: 0x22C55E,
+        mid: 0x15803D,
+        low: 0x14532D,
+        base: 0x052e16,
+        light1: 0x4ADE80,
+        light2: 0x10B981,
+      },
+      solar: {
+        bg: 0x0c0602,
+        high: 0xF59E0B,
+        mid: 0xEF4444,
+        low: 0x78350F,
+        base: 0x451A03,
+        light1: 0xF59E0B,
+        light2: 0xEF4444,
+      }
+    };
+
+    function initThree3D() {
+      if (isThreeRunning) return;
+      var container = document.getElementById("threeContainer");
+      if (!container || !window.THREE) return;
+
+      var width = container.clientWidth || 920;
+      var height = container.clientHeight || 560;
+
+      // 1. Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(colorPalettes[currentTheme].bg);
+      scene.fog = new THREE.FogExp2(colorPalettes[currentTheme].bg, 0.007);
+
+      // 2. Camera
+      camera = new THREE.PerspectiveCamera(45, width / height, 1, 2000);
+      camera.position.set(0, 110, 160);
+
+      // 3. Renderer
+      var canvas = document.getElementById("threeCanvas");
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(width, height);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.2;
+
+      // 4. Orbit Controls
+      if (window.THREE.OrbitControls) {
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.06;
+        controls.maxPolarAngle = Math.PI / 2 - 0.05; // Don't go below floor
+        controls.minDistance = 30;
+        controls.maxDistance = 380;
+        controls.autoRotate = isAutoRotate;
+        controls.autoRotateSpeed = 0.8;
+      }
+
+      // 5. Lighting
+      var ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
+      scene.add(ambientLight);
+
+      light1 = new THREE.PointLight(colorPalettes[currentTheme].light1, 2.5, 300);
+      light1.position.set(0, 50, 0);
+      scene.add(light1);
+
+      light2 = new THREE.PointLight(colorPalettes[currentTheme].light2, 2.0, 300);
+      light2.position.set(0, 40, 0);
+      scene.add(light2);
+
+      // 6. Holographic Starfield / Cyber Dust
+      var starGeo = new THREE.BufferGeometry();
+      var starCount = 2200;
+      var starPos = new Float32Array(starCount * 3);
+      for (var s = 0; s < starCount * 3; s += 3) {
+        starPos[s] = (Math.random() - 0.5) * 600;
+        starPos[s + 1] = Math.random() * 250 - 20;
+        starPos[s + 2] = (Math.random() - 0.5) * 600;
+      }
+      starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+      var starMat = new THREE.PointsMaterial({
+        color: 0x00F5A0,
+        size: 1.5,
+        transparent: true,
+        opacity: 0.6,
+      });
+      starParticles = new THREE.Points(starGeo, starMat);
+      scene.add(starParticles);
+
+      // 7. Ground Grid Plane
+      var gridHelper = new THREE.GridHelper(300, 40, 0x00D9F5, 0x111e33);
+      gridHelper.position.y = -0.1;
+      scene.add(gridHelper);
+
+      // 8. Generate 3D Extruded Matrix Towers
+      createMatrixPillars();
+
+      // 9. Vertical Energy Laser Beam
+      var beamGeo = new THREE.CylinderGeometry(0.5, 0.5, 300, 16);
+      var beamMat = new THREE.MeshBasicMaterial({
+        color: 0x00F5A0,
+        transparent: true,
+        opacity: 0.0,
+      });
+      energyBeam = new THREE.Mesh(beamGeo, beamMat);
+      energyBeam.position.y = 150;
+      scene.add(energyBeam);
+
+      // 10. Raycasting
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2(-999, -999);
+
+      canvas.addEventListener("mousemove", onMouseMove);
+      canvas.addEventListener("touchstart", onTouchStart, { passive: true });
+      window.addEventListener("resize", resizeThree3D);
+
+      isThreeRunning = true;
+      animateThree();
+    }
+
+    function createMatrixPillars() {
+      // Clean previous pillars if any
+      pillars.forEach(function(p) { scene.remove(p.mesh); });
+      pillars = [];
+
+      var boxGeo = new THREE.BoxGeometry(2.4, 1, 2.4);
+      // Move geometry origin to bottom so scaling in Y grows upwards!
+      boxGeo.translate(0, 0.5, 0);
+
+      var spacingX = 3.2;
+      var spacingZ = 3.2;
+      var startX = -((matrixCols - 1) * spacingX) / 2;
+      var startZ = -((matrixRows - 1) * spacingZ) / 2;
+
+      for (var col = 0; col < matrixCols; col++) {
+        for (var row = 0; row < matrixRows; row++) {
+          var x = startX + col * spacingX;
+          var z = startZ + row * spacingZ;
+
+          // Deterministic simulated commit cluster pattern
+          var distCenter = Math.sqrt(x*x + z*z);
+          var rand = Math.sin(col * 12.9898 + row * 78.233) * 43758.5453;
+          rand = rand - Math.floor(rand);
+
+          var baseH = 2.0;
+          var commits = 0;
+          if (rand > 0.45) {
+            commits = Math.floor(rand * 28) + 1;
+            baseH = Math.max(3, commits * 1.5);
+          }
+
+          var mat = new THREE.MeshStandardMaterial({
+            color: colorPalettes[currentTheme].base,
+            emissive: commits > 15 ? colorPalettes[currentTheme].high : (commits > 5 ? colorPalettes[currentTheme].mid : colorPalettes[currentTheme].low),
+            emissiveIntensity: commits > 15 ? 0.9 : (commits > 5 ? 0.5 : 0.15),
+            roughness: 0.2,
+            metalness: 0.8,
+          });
+
+          var mesh = new THREE.Mesh(boxGeo, mat);
+          mesh.position.set(x, 0, z);
+          mesh.scale.set(1, baseH, 1);
+
+          mesh.userData = {
+            col: col,
+            row: row,
+            x: x,
+            z: z,
+            baseH: baseH,
+            currentH: baseH,
+            commits: commits,
+            title: commits > 20 ? "JARVIS AI Voice Kernel" : (commits > 12 ? "WearBuy Logistics Engine" : (commits > 5 ? "DevzIndia React Hub" : "System Routine")),
+          };
+
+          scene.add(mesh);
+          pillars.push({ mesh: mesh, baseH: baseH, col: col, row: row });
+        }
+      }
+    }
+
+    function onMouseMove(event) {
+      var rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    function onTouchStart(event) {
+      if (event.touches.length > 0) {
+        var rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.touches[0].clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.touches[0].clientY - rect.top) / rect.height) * 2 + 1;
+      }
+    }
+
+    function resizeThree3D() {
+      if (!renderer || !camera) return;
+      var container = document.getElementById("threeContainer");
+      if (!container) return;
+      var width = container.clientWidth;
+      var height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+
+      var time = clock.getElapsedTime();
+
+      // Orbit controls
+      if (controls) controls.update();
+
+      // Orbiting dynamic point lights
+      if (light1 && light2) {
+        light1.position.x = Math.sin(time * 0.9) * 80;
+        light1.position.z = Math.cos(time * 0.9) * 60;
+        light1.position.y = 35 + Math.sin(time * 2.0) * 15;
+
+        light2.position.x = Math.sin(-time * 0.7) * 75;
+        light2.position.z = Math.cos(-time * 0.7) * 65;
+        light2.position.y = 30 + Math.cos(time * 1.8) * 12;
+      }
+
+      // Starfield gentle rotation
+      if (starParticles) {
+        starParticles.rotation.y = time * 0.02;
+      }
+
+      // Shockwave propagation
+      if (shockwaveRadius >= 0) {
+        shockwaveRadius += 3.5;
+        if (shockwaveRadius > 250) shockwaveRadius = -1;
+      }
+
+      // Undulating Wave animation
+      for (var i = 0; i < pillars.length; i++) {
+        var p = pillars[i];
+        var d = Math.sqrt(p.mesh.position.x * p.mesh.position.x + p.mesh.position.z * p.mesh.position.z);
+        var waveOffset = 0;
+
+        if (waveActive) {
+          waveOffset = Math.sin(d * 0.12 - time * 3.5) * 5.5 + Math.cos(p.col * 0.4 + time * 2.0) * 2.0;
+        }
+
+        // Add shockwave impact
+        if (shockwaveRadius >= 0) {
+          var distToWave = Math.abs(d - shockwaveRadius);
+          if (distToWave < 18) {
+            waveOffset += (1.0 - distToWave / 18) * 32.0;
+          }
+        }
+
+        var targetHeight = Math.max(1.5, (p.baseH + waveOffset) * heightScale);
+        p.mesh.scale.y += (targetHeight - p.mesh.scale.y) * 0.18;
+      }
+
+      // Raycasting Hover Detection
+      if (raycaster && camera) {
+        raycaster.setFromCamera(mouse, camera);
+        var intersects = raycaster.intersectObjects(pillars.map(function(p){ return p.mesh; }));
+
+        var tooltip = document.getElementById("pillarTooltip");
+
+        if (intersects.length > 0) {
+          var hitMesh = intersects[0].object;
+          if (hoveredMesh !== hitMesh) {
+            // Restore previous mesh
+            if (hoveredMesh) hoveredMesh.material.emissiveIntensity = hoveredMesh.userData.origIntensity || 0.4;
+
+            hoveredMesh = hitMesh;
+            hoveredMesh.userData.origIntensity = hoveredMesh.material.emissiveIntensity;
+            hoveredMesh.material.emissiveIntensity = 2.4;
+
+            // Position energy beam
+            if (energyBeam) {
+              energyBeam.position.x = hitMesh.position.x;
+              energyBeam.position.z = hitMesh.position.z;
+              energyBeam.material.opacity = 0.85;
+              energyBeam.material.color.setHex(colorPalettes[currentTheme].high);
+            }
+
+            // Audio blip
+            beep(600 + hitMesh.userData.commits * 30, 0.04, "triangle");
+
+            // Update Tooltip HUD
+            if (tooltip) {
+              tooltip.style.opacity = "1";
+              document.getElementById("ttCoords").textContent = "[" + hitMesh.userData.col + ", " + hitMesh.userData.row + "]";
+              document.getElementById("ttTitle").textContent = hitMesh.userData.title;
+              document.getElementById("ttCommits").textContent = hitMesh.userData.commits + " Commits";
+              document.getElementById("ttHeight").textContent = "Pillar Elevation: " + hitMesh.scale.y.toFixed(1) + "m";
+            }
+          }
+        } else {
+          if (hoveredMesh) {
+            hoveredMesh.material.emissiveIntensity = hoveredMesh.userData.origIntensity || 0.4;
+            hoveredMesh = null;
+          }
+          if (energyBeam) energyBeam.material.opacity = 0.0;
+          if (tooltip) tooltip.style.opacity = "0";
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // Camera Preset Controls
+    function setCameraPreset(mode) {
+      if (!camera || !controls) return;
+      beep(750, 0.04);
+      controls.autoRotate = false;
+      var btns = document.querySelectorAll(".cam-btn");
+      btns.forEach(function(b){ b.classList.remove("active"); });
+      var target = document.getElementById("cam-" + mode);
+      if (target) target.classList.add("active");
+
+      if (mode === "orbit") {
+        controls.autoRotate = true;
+        camera.position.set(0, 110, 160);
+      } else if (mode === "iso") {
+        camera.position.set(130, 120, 130);
+      } else if (mode === "ground") {
+        camera.position.set(0, 12, 100);
+      } else if (mode === "top") {
+        camera.position.set(0, 220, 1);
+      }
+      controls.target.set(0, 0, 0);
+    }
+
+    function toggleWave() {
+      waveActive = !waveActive;
+      var el = document.getElementById("waveStatus");
+      if (el) el.textContent = waveActive ? "WAVE: ACTIVE" : "WAVE: FROZEN";
+      beep(waveActive ? 650 : 400, 0.06);
+    }
+
+    function triggerShockwave() {
+      shockwaveRadius = 0;
+      beep(200, 0.25, "sawtooth");
+    }
+
+    function setTheme(theme) {
+      if (!colorPalettes[theme]) return;
+      currentTheme = theme;
+      beep(880, 0.05);
+
+      if (scene) {
+        scene.background.setHex(colorPalettes[theme].bg);
+        scene.fog.color.setHex(colorPalettes[theme].bg);
+      }
+      if (light1) light1.color.setHex(colorPalettes[theme].light1);
+      if (light2) light2.color.setHex(colorPalettes[theme].light2);
+      if (starParticles) starParticles.material.color.setHex(colorPalettes[theme].high);
+
+      // Re-apply materials to pillars
+      pillars.forEach(function(p) {
+        var commits = p.mesh.userData.commits;
+        p.mesh.material.color.setHex(colorPalettes[theme].base);
+        p.mesh.material.emissive.setHex(commits > 15 ? colorPalettes[theme].high : (commits > 5 ? colorPalettes[theme].mid : colorPalettes[theme].low));
+      });
+    }
+
+    function toggleFullscreen3D() {
+      var wrap = document.getElementById("threeContainer");
+      if (!wrap) return;
+      wrap.classList.toggle("fullscreen-mode");
+      setTimeout(resizeThree3D, 100);
+      beep(900, 0.06);
+    }
+
+    // ==========================================
+    // 🐍 RETRO CYBER SNAKE GAME
+    // ==========================================
+    var snake = [{x: 10, y: 10}];
+    var dir = {x: 1, y: 0};
+    var nextDir = {x: 1, y: 0};
+    var food = {x: 15, y: 10};
+    var score = 0;
+    var highScore = 0;
+    var isRunning = false;
+    var isPaused = false;
+    var gameLoop = null;
+
+    function spawnFood(cols, rows) {
+      food = {
+        x: Math.floor(Math.random() * (cols || 36)),
+        y: Math.floor(Math.random() * (rows || 19))
+      };
+    }
+
+    function toggleGame() {
+      var c = document.getElementById("snakeCanvas");
+      if (!c) return;
+      beep(600, 0.08);
+      snake = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
+      dir = {x: 1, y: 0};
+      nextDir = {x: 1, y: 0};
+      score = 0;
+      var scoreEl = document.getElementById("scoreVal");
+      if (scoreEl) scoreEl.textContent = score;
+      var cols = c.width / 20;
+      var rows = c.height / 20;
+      spawnFood(cols, rows);
+      isRunning = true;
+      isPaused = false;
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(updateSnake, 85);
+    }
+
+    function togglePause() {
+      if (!isRunning) return;
+      isPaused = !isPaused;
+      beep(400, 0.05);
+    }
+
+    function handleKey(key) {
+      if (key === "ArrowUp" || key === "w" || key === "W") {
+        if (dir.y === 0) nextDir = {x: 0, y: -1};
+      } else if (key === "ArrowDown" || key === "s" || key === "S") {
+        if (dir.y === 0) nextDir = {x: 0, y: 1};
+      } else if (key === "ArrowLeft" || key === "a" || key === "A") {
+        if (dir.x === 0) nextDir = {x: -1, y: 0};
+      } else if (key === "ArrowRight" || key === "d" || key === "D") {
+        if (dir.x === 0) nextDir = {x: 1, y: 0};
+      }
+    }
+
+    function updateSnake() {
+      if (isPaused) return;
+      var c = document.getElementById("snakeCanvas");
+      if (!c) return;
+      var cols = c.width / 20;
+      var rows = c.height / 20;
+
+      dir = nextDir;
+      var head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+      // Wrap around grid boundaries
+      if (head.x < 0) head.x = cols - 1;
+      if (head.x >= cols) head.x = 0;
+      if (head.y < 0) head.y = rows - 1;
+      if (head.y >= rows) head.y = 0;
+
+      // Self collision
+      for (var i = 0; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+          clearInterval(gameLoop);
+          isRunning = false;
+          beep(180, 0.3, "sawtooth");
+          alert("GAME OVER! Final Score: " + score);
+          return;
+        }
+      }
+
+      snake.unshift(head);
+
+      // Eat Food
+      if (head.x === food.x && head.y === food.y) {
+        score += 1;
+        var sEl = document.getElementById("scoreVal");
+        if (sEl) sEl.textContent = score;
+        if (score > highScore) {
+          highScore = score;
+          var hsEl = document.getElementById("highScoreVal");
+          if (hsEl) hsEl.textContent = highScore;
+          try { localStorage.setItem("hdevz_snake_high", highScore); } catch(e){}
+        }
+        beep(880, 0.08, "sine");
+        spawnFood(cols, rows);
+      } else {
+        snake.pop();
+      }
+
+      drawSnake();
+    }
+
+    function drawSnake() {
+      var c = document.getElementById("snakeCanvas");
+      if (!c) return;
+      var ctx = c.getContext("2d");
+      var gridSize = 20;
+      ctx.fillStyle = "#04060c";
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // Gridlines
+      ctx.strokeStyle = "#0d1424";
+      ctx.lineWidth = 0.5;
+      for (var x = 0; x < c.width; x += gridSize) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, c.height); ctx.stroke();
+      }
+      for (var y = 0; y < c.height; y += gridSize) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(c.width, y); ctx.stroke();
+      }
+
+      // Food
+      ctx.fillStyle = "#00F5A0";
+      ctx.shadowColor = "#00F5A0";
+      ctx.shadowBlur = 10;
+      ctx.fillRect(food.x * gridSize + 2, food.y * gridSize + 2, gridSize - 4, gridSize - 4);
+      ctx.shadowBlur = 0;
+
+      // Snake body
+      for (var i = 0; i < snake.length; i++) {
+        ctx.fillStyle = i === 0 ? "#00D9F5" : (i % 2 === 0 ? "#00F5A0" : "#38bdf8");
+        ctx.fillRect(snake[i].x * gridSize + 1, snake[i].y * gridSize + 1, gridSize - 2, gridSize - 2);
+      }
+    }
+
+    // EXPLICIT GLOBAL BINDINGS SO NO FUNCTION IS EVER "UNDEFINED"
+    window.switchTab = switchTab;
+    window.toggleGame = toggleGame;
+    window.togglePause = togglePause;
+    window.toggleMute = toggleMute;
+    window.handleKey = handleKey;
+    window.initThree3D = initThree3D;
+    window.resizeThree3D = resizeThree3D;
+    window.setCameraPreset = setCameraPreset;
+    window.toggleWave = toggleWave;
+    window.triggerShockwave = triggerShockwave;
+    window.setTheme = setTheme;
+    window.toggleFullscreen3D = toggleFullscreen3D;
+  </script>
+<script src="/_aistudio-iframe.js?v=2c34bde1"></script></head>
+<body>
+
+  <header>
+    <div class="badge">SYSTEM IDENTIFIER // HARSHIT</div>
+    <h1>3D Cyber Matrix &amp; Mission Control</h1>
+    <p class="subtitle">Mind-blowing real-time Three.js WebGL neural matrix, retro cyber arcade, and interactive developer CLI.</p>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" data-tab="3d" onclick="switchTab('3d')">
+      <span>🌐</span> 3D Neural Matrix
+    </button>
+    <button class="tab-btn" data-tab="snake" onclick="switchTab('snake')">
+      <span>🎮</span> Play Cyber Snake
+    </button>
+    <button class="tab-btn" data-tab="portfolio" onclick="switchTab('portfolio')">
+      <span>⚡</span> Live Portfolio
+    </button>
+    <button class="tab-btn" data-tab="terminal" onclick="switchTab('terminal')">
+      <span>💻</span> Cyber Terminal CLI
+    </button>
+  </nav>
+
+  <!-- TAB 1: 3D NEURAL MATRIX (MIND-BLOWING WEBGL EXPERIENCE) -->
+  <div id="tab-3d" class="tab-panel active">
+    <div class="card">
+      <div class="matrix-3d-wrap" id="threeContainer">
+        
+        <!-- Top HUD Bar -->
+        <div class="matrix-hud-top">
+          <div class="matrix-tag">
+            <span style="color:#00F5A0">●</span> THREE.JS WEBGL // 672 QUANTUM NODES
+          </div>
+          
+          <!-- Camera Presets -->
+          <div class="matrix-btn-group">
+            <button class="m-btn cam-btn active" id="cam-orbit" onclick="setCameraPreset('orbit')">🛸 Drone 360°</button>
+            <button class="m-btn cam-btn" id="cam-iso" onclick="setCameraPreset('iso')">📐 Isometric</button>
+            <button class="m-btn cam-btn" id="cam-ground" onclick="setCameraPreset('ground')">🏙️ Ground</button>
+            <button class="m-btn cam-btn" id="cam-top" onclick="setCameraPreset('top')">🛰️ Radar</button>
+            <button class="m-btn" onclick="toggleFullscreen3D()">⛶ Fullscreen</button>
+          </div>
+        </div>
+
+        <!-- The Three.js Canvas -->
+        <canvas id="threeCanvas"></canvas>
+
+        <!-- Dynamic Raycaster Tooltip HUD -->
+        <div class="pillar-tooltip" id="pillarTooltip" style="opacity:0;">
+          <div class="tooltip-header">
+            <span>NODE TELEMETRY</span>
+            <span id="ttCoords">[0, 0]</span>
+          </div>
+          <div class="tooltip-title" id="ttTitle">JARVIS AI Voice Kernel</div>
+          <div class="tooltip-meta">
+            <span style="color:var(--mint); font-weight:bold;" id="ttCommits">24 Commits</span> &bull; 
+            <span id="ttHeight">Pillar Elevation: 32m</span>
+            <br>
+            <span style="color:#38bdf8;">Status: SYS_OPTIMAL &bull; Type: Neural Weights</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Bar Below 3D Viewport -->
+      <div class="matrix-controls-bar">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <button class="btn" style="padding:6px 12px; font-size:11px;" onclick="triggerShockwave()">💥 Trigger Shockwave</button>
+          <button class="btn" style="padding:6px 12px; font-size:11px;" id="waveStatus" onclick="toggleWave()">WAVE: ACTIVE</button>
+          
+          <span style="color:var(--text-muted); margin-left:6px;">Theme:</span>
+          <button class="m-btn" style="padding:4px 8px; font-size:11px;" onclick="setTheme('mint')">🟢 Mint</button>
+          <button class="m-btn" style="padding:4px 8px; font-size:11px;" onclick="setTheme('synthwave')">🟣 Synthwave</button>
+          <button class="m-btn" style="padding:4px 8px; font-size:11px;" onclick="setTheme('matrix')">🟩 Matrix</button>
+          <button class="m-btn" style="padding:4px 8px; font-size:11px;" onclick="setTheme('solar')">🟠 Solar</button>
+        </div>
+
+        <div class="slider-wrap">
+          <span>Height Boost:</span>
+          <input type="range" min="0.5" max="2.5" step="0.1" value="1.0" oninput="heightScale = parseFloat(this.value);" />
+        </div>
+      </div>
+      
+      <p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:10px;">
+        💡 Click &amp; drag to orbit in 3D &bull; Scroll to zoom &bull; Hover over any glowing tower to activate quantum laser telemetry!
+      </p>
+    </div>
+  </div>
+
+  <!-- TAB 2: PLAY CYBER SNAKE -->
+  <div id="tab-snake" class="tab-panel">
+    <div class="card">
+      <div class="game-hud">
+        <div class="hud-stat">COMMITS EATEN: <span id="scoreVal">0</span></div>
+        <div class="hud-stat">HIGH SCORE: <span id="highScoreVal">0</span></div>
+        <div class="hud-stat">AUDIO: <span id="audioStatus">SYNTH ON</span></div>
+      </div>
+
+      <canvas id="snakeCanvas" width="720" height="380"></canvas>
+
+      <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+        <button class="btn btn-primary" id="startBtn" onclick="toggleGame()">START / RESTART</button>
+        <button class="btn" onclick="togglePause()">PAUSE</button>
+        <button class="btn" onclick="toggleMute()">MUTE AUDIO</button>
+      </div>
+
+      <p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:4px;">
+        Use <b>Arrow Keys</b> or <b>W, A, S, D</b> to navigate. Eat glowing commits to expand the grid!
+      </p>
+
+      <div class="d-pad">
+        <div></div>
+        <button onclick="handleKey('ArrowUp')">▲</button>
+        <div></div>
+        <button onclick="handleKey('ArrowLeft')">◀</button>
+        <button onclick="handleKey('ArrowDown')">▼</button>
+        <button onclick="handleKey('ArrowRight')">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: LIVE PORTFOLIO -->
+  <div id="tab-portfolio" class="tab-panel">
+    <div class="card">
+      <div class="portfolio-grid">
+        <div class="preview-card">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <span class="metric-badge">LIGHTHOUSE 98+</span>
+            <span class="metric-badge" style="border-color:rgba(0, 217, 245, 0.3); color:var(--cyan);">0.4s FCP</span>
+            <span class="metric-badge" style="border-color:rgba(99, 102, 241, 0.3); color:var(--indigo);">0.00 CLS</span>
+          </div>
+
+          <h2 style="font-size:24px; font-weight:800; margin-bottom:8px; color:#fff;">
+            Harshit // Flagship Digital Platform
+          </h2>
+          <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:18px;">
+            High-velocity AI &amp; Full-Stack portfolio featuring sub-second route transitions, spring micro-interactions, responsive viewport tokens, and edge-cached serverless deployment.
+          </p>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="https://h-devz.vercel.app/" target="_blank" class="btn btn-primary">
+              ⚡ Open Live Portfolio (h-devz.vercel.app) ↗
+            </a>
+            <a href="https://github.com/HarshitDevz" target="_blank" class="btn">
+              Explore GitHub Repositories
+            </a>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <h3 style="font-size:14px; font-family:var(--font-mono); font-weight:700; color:var(--mint); margin-bottom:12px; text-transform:uppercase;">
+            🛠️ Production Architecture
+          </h3>
+          <ul style="font-size:13px; color:var(--text-muted); list-style:none; line-height:2;">
+            <li>✓ <b>Frontend:</b> Next.js 15, React 19, TypeScript</li>
+            <li>✓ <b>Styling:</b> Tailwind CSS &amp; Framer Motion</li>
+            <li>✓ <b>Deployment:</b> Vercel Edge Global Network</li>
+            <li>✓ <b>AI &amp; Backend:</b> Python NLP, Node.js, Express, MongoDB</li>
+            <li>✓ <b>Active Systems:</b> WearBuy &bull; JARVIS AI &bull; DevzIndia</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: CYBER TERMINAL -->
+  <div id="tab-terminal" class="tab-panel">
+    <div class="card">
+      <div class="terminal-body">
+        <div class="term-output" id="termOutput">
+╭────────────────────────────────────────────────────────────────────────╮
+│  HARSHIT CYBER TERMINAL CLI (v3.0) - INITIALIZED                       │
+│  Type 'help' for available system diagnostics and module controls      │
+╰────────────────────────────────────────────────────────────────────────╯
+✓ Connected to host: harshit.local (IP: 127.0.0.1)
+✓ System core operational. Type 'skills', 'projects', 'snake', '3d', or 'contact'.
+        </div>
+        <div class="term-input-row">
+          <span class="term-prompt">harshit@terminal:~$</span>
+          <input type="text" class="term-input" id="termInput" autofocus placeholder="Type command here (e.g. help, 3d, projects, skills)..." />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Designed &amp; Engineered with passion by <a href="https://github.com/HarshitDevz" target="_blank">Harshit (@HarshitDevz)</a> · 
+    <a href="https://h-devz.vercel.app/" target="_blank">h-devz.vercel.app</a>
+  </footer>
+
+  <!-- EVENT LISTENERS & INITIALIZATION SCRIPT -->
+  <script>
+    window.addEventListener("DOMContentLoaded", function() {
+      try {
+        var savedHigh = localStorage.getItem("hdevz_snake_high");
+        if (savedHigh) {
+          highScore = parseInt(savedHigh, 10) || 0;
+          var hsEl = document.getElementById("highScoreVal");
+          if (hsEl) hsEl.textContent = highScore;
+        }
+      } catch(e){}
+
+      drawSnake();
+
+      // Check URL Hash on startup
+      var hash = window.location.hash.replace("#", "").toLowerCase();
+      if (hash === "3d" || hash === "" || !hash) {
+        switchTab("3d");
+      } else if (["snake", "portfolio", "terminal"].indexOf(hash) !== -1) {
+        switchTab(hash);
+      }
+
+      // Keyboard Controls
+      window.addEventListener("keydown", function(e) {
+        if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.key) !== -1) {
+          var activeTab = document.querySelector(".tab-panel.active");
+          if (activeTab && activeTab.id === "tab-snake") e.preventDefault();
+        }
+        handleKey(e.key);
+      });
+
+      // Terminal Command Dispatcher
+      var termInput = document.getElementById("termInput");
+      var termOutput = document.getElementById("termOutput");
+
+      var commands = {
+        help: "Available system commands:\n  • skills    : Show Harshit's primary technical proficiencies\n  • projects  : View production platforms & live works\n  • 3d        : Switch to 3D Neural Matrix\n  • snake     : Switch to snake arcade game\n  • portfolio : Open live portfolio (h-devz.vercel.app)\n  • clear     : Clear terminal history\n  • contact   : Get direct contact & transmission info",
+        skills: "⚡ TECHNICAL PROFICIENCIES:\n  Languages: Python, TypeScript, JavaScript\n  Frontend : React 19, Next.js 15, Tailwind CSS, Three.js WebGL\n  Backend  : Node.js, Express, MongoDB, Cloudflare Workers, SQL\n  AI Core  : AI Voice Automation, NLP, Speech Recognition, AI Agents",
+        projects: "🚀 FEATURED DEPLOYMENTS:\n  [1] WearBuy (Hyperlocal Fashion Quick-Commerce & 60-min Try-at-Home)\n  [2] JARVIS (Autonomous Python AI Voice Assistant)\n  [3] DevzIndia (Developer Community Platform)\n  [4] Pandittan Di Hatti (Heritage E-Commerce Store)",
+        "3d": function() { switchTab('3d'); return "Launching 3D Neural Matrix..."; },
+        snake: function() { switchTab('snake'); return "Launching Snake Arcade Game..."; },
+        portfolio: function() { switchTab('portfolio'); return "Switching to Live Portfolio Showcase..."; },
+        clear: function() { termOutput.textContent = ""; return ""; },
+        contact: "📬 DISPATCH HARSHIT:\n  Email     : harshhit.uiu@gmail.com\n  LinkedIn  : https://www.linkedin.com/in/harshitdevz/\n  Portfolio : https://h-devz.vercel.app/"
+      };
+
+      if (termInput && termOutput) {
+        termInput.addEventListener("keydown", function(e) {
+          if (e.key === "Enter") {
+            var cmd = termInput.value.trim().toLowerCase();
+            termInput.value = "";
+            beep(800, 0.04);
+
+            termOutput.textContent += "\nharshit@terminal:~$ " + cmd + "\n";
+            if (commands[cmd]) {
+              var res = typeof commands[cmd] === "function" ? commands[cmd]() : commands[cmd];
+              if (res) termOutput.textContent += res + "\n";
+            } else if (cmd !== "") {
+              termOutput.textContent += "Command not recognized: '" + cmd + "'. Type 'help' for commands.\n";
+            }
+            termOutput.scrollTop = termOutput.scrollHeight;
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
